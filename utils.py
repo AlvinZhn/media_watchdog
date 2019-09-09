@@ -64,13 +64,13 @@ def generate_message(callback_info):
 	data = ''
 	if series_all != 0:
 		data += "__Series:__ _{} File(s) Processed...._\n" \
-				"* `Succeed: {} | Warning: {} | Error: {}`\n\n".format(
-			series_all, counter['Series']['Succeed'], counter['Series']['Warning'], counter['Series']['Error']
+				"* `Success: {} | Warning: {} | Error: {}`\n\n".format(
+			series_all, counter['Series']['Success'], counter['Series']['Warning'], counter['Series']['Error']
 		)
 	elif movies_all != 0:
 		data += "__Movies:__ _{} File(s) Processed...._\n" \
-				"* `Succeed: {} | Warning: {} | Error: {}`\n\n".format(
-			series_all, counter['Movies']['Succeed'], counter['Movies']['Warning'], counter['Movies']['Error']
+				"* `Success: {} | Warning: {} | Error: {}`\n\n".format(
+			series_all, counter['Movies']['Success'], counter['Movies']['Warning'], counter['Movies']['Error']
 		)
 	sep = '---\n'
 	header2 = "### 详细信息\n"
