@@ -10,11 +10,11 @@ from model.Movies import Movies
 from utils import my_logger as logger, wechat_logger
 
 
-def creat_movie_symlink(file_path, rest, name_from_db, debug=False):
+def creat_movie_symlink(file_path, name_from_db, extn, debug=False):
 	# create path and symbolic link
 	filename = os.path.split(file_path)[1]
-	new_folder_path = config.symbolic_link_folder_path + "/Movies/" + rest
-	symbolic_path = new_folder_path + '/' + name_from_db
+	new_folder_path = config.symbolic_link_folder_path + "/Movies/" + name_from_db
+	symbolic_path = new_folder_path + '/' + name_from_db + extn
 
 	if not debug:
 		make_dir(config.symbolic_link_folder_path)
@@ -148,10 +148,9 @@ def handle_movie_all(file_path_list, debug=False):
 
 			name_from_db = find_most_apt(final_name, movies_name)
 			name_from_db = remove_illegal(name_from_db)
-			name_from_db = name_from_db + extn
 			logger("Most Apt: {}".format(name_from_db))
 
-			creat_movie_symlink(file_path, name_from_db, name_from_db, debug=debug)
+			creat_movie_symlink(file_path, name_from_db, extn, debug=debug)
 
 		else:
 			msg_code = 'code3'

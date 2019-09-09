@@ -54,7 +54,6 @@ def generate_message(callback_info):
 		status = el.get('status')
 		message_code = el.get('msg_code')
 		counter['Movies'][status] += 1
-		del el['msg']
 		del el['status']
 		messages[message_code]['Movies'].append(el)
 
