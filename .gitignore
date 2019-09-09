@@ -8,5 +8,5 @@ __pycache__
 *.iml
 db
 config-user.py
-logs/*
+logs/*.log
 
