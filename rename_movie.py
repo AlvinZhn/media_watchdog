@@ -80,7 +80,6 @@ def creat_movie_symlink(file_path, name_from_db, extn, debug=False):
 			return info
 
 
-
 def handle_movie_all(file_path_list, debug=False):
 	"""
 	:param file_info:
@@ -120,6 +119,10 @@ def handle_movie_all(file_path_list, debug=False):
 			logger('Derived name: {}'.format(final_name))
 
 			movies_name = search_from_imdb(final_name, media_type)
+			final_name_converted = is_series_movie(final_name, convert=True)
+
+			if (len(movies_name) == 0 or movies_name is None) and final_name_converted is not None:
+				movies_name = search_from_imdb(final_name_converted, media_type)
 
 			if movies_name is None:
 				msg_code = 'code3'
@@ -150,7 +153,9 @@ def handle_movie_all(file_path_list, debug=False):
 			name_from_db = remove_illegal(name_from_db)
 			logger("Most Apt: {}".format(name_from_db))
 
-			creat_movie_symlink(file_path, name_from_db, extn, debug=debug)
+			info = creat_movie_symlink(file_path, name_from_db, extn, debug=debug)
+			result_list.append(info)
+			continue
 
 		else:
 			msg_code = 'code3'

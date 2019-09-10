@@ -56,24 +56,26 @@ def init_server():
 		send_to_wechat(callback_info, status)
 	else:
 		# check validity of all symbolic link
+		logger('Check Broken Symbolic Link...')
 		broken_file_path = []
 		instance_list = []
-		instance_list.append(Series.symlink_validation())
-		instance_list.append(Movies.symlink_validation())
+		instance_list += Series.symlink_validation()
+		instance_list += Movies.symlink_validation()
 		for el in instance_list:
 			file_path = getattr(el, 'file_path')
 			logger('File [{}] not exist, remove relevant symbolic link, remove instance from db...'.format(file_path))
 			broken_file_path.append(file_path)
 		if len(broken_file_path) != 0:
-			msg = "###Broken symbolic link detected\n"\
+			msg = "###Broken symbolic link detected\n" \
 				  "__Notice:__ _Below files were deleted from database due to file missing._\n"
 			for file_path in broken_file_path:
 				msg += "* `{}`\n\n".format(file_path)
 			wechat_logger(title='数据库变动通知', desp=msg)
 
 		# check db modification
-		series_path_list = Series.check_modification()
-		movie_path_list = Movies.check_modification()
+		logger('Check File Modification...')
+		series_path_list = Series.check_modification(file_path_dict.get('Series'))
+		movie_path_list = Movies.check_modification(file_path_dict.get('Movie'))
 		file_path_dict = dict(
 			Movie=movie_path_list,
 			Series=series_path_list
@@ -107,15 +109,16 @@ class MyHandler(PatternMatchingEventHandler):
 		)
 		if (os.path.splitext(file_path[0])[1]) in config.allowed_extn:
 			file_path_dict[media_type].append(file_path)
-		# rename new file
-		callback_info = rename_all(file_path_dict)
-		# wechat send info to inform file download & rename success
-		status = 'moved'
-		send_to_wechat(callback_info, status)
+			# rename new file
+			callback_info = rename_all(file_path_dict)
+			# wechat send info to inform file download & rename success
+			status = 'moved'
+			send_to_wechat(callback_info, status)
 
 
 if __name__ == "__main__":
 	init_server()
+	logger('Starting to monitoring media path...')
 
 	path = config.media_folder_path
 

@@ -17,15 +17,17 @@ def creat_series_symlink(file_path, se_info, name_from_db, debug=False):
 	filename = os.path.split(file_path)[1]
 
 	if '/Anime' in folder:
+		media_type_folder_path = config.symbolic_link_folder_path + "/Anime"
 		new_folder_path = config.symbolic_link_folder_path + "/Anime/" + name_from_db
 	else:
+		media_type_folder_path = config.symbolic_link_folder_path + "/Series"
 		new_folder_path = config.symbolic_link_folder_path + "/Series/" + name_from_db
 	season_folder_path = new_folder_path + "/Season " + season
 	symbolic_path = season_folder_path + '/' + se_info + os.path.splitext(filename)[1]
 
 	if not debug:
 		make_dir(config.symbolic_link_folder_path)
-		make_dir(config.symbolic_link_folder_path + "/Series")
+		make_dir(media_type_folder_path)
 		make_dir(new_folder_path)
 		make_dir(season_folder_path)
 
@@ -38,7 +40,8 @@ def creat_series_symlink(file_path, se_info, name_from_db, debug=False):
 				msg_code=msg_code,
 				filename=filename,
 				name_from_db=name_from_db,
-				season=se_info,
+				season=se_info[0:3],
+				episode=[se_info[3:]]
 			)
 			return info
 		else:
@@ -57,7 +60,8 @@ def creat_series_symlink(file_path, se_info, name_from_db, debug=False):
 				msg_code=msg_code,
 				filename=filename,
 				name_from_db=name_from_db,
-				season=se_info,
+				season=se_info[0:3],
+				episode=[se_info[3:]]
 			)
 			return info
 	else:
@@ -70,7 +74,8 @@ def creat_series_symlink(file_path, se_info, name_from_db, debug=False):
 				msg_code=msg_code,
 				filename=filename,
 				name_from_db=name_from_db,
-				season=se_info,
+				season=se_info[0:3],
+				episode=[se_info[3:]]
 			)
 			return info
 		else:
@@ -87,7 +92,8 @@ def creat_series_symlink(file_path, se_info, name_from_db, debug=False):
 				msg_code=msg_code,
 				filename=filename,
 				name_from_db=name_from_db,
-				season=se_info,
+				season=se_info[0:3],
+				episode=[se_info[3:]]
 			)
 			return info
 
@@ -161,7 +167,7 @@ def handle_series_all(file_path_list, debug=False):
 				)
 				result_list.append(info)
 				continue
-			elif len(series_name) == 0 :
+			elif len(series_name) == 0:
 				skipped_folder.append(folder_path)
 				msg_code = 'code4'
 				msg = 'No data found from imdb.\n'
@@ -187,7 +193,6 @@ def handle_series_all(file_path_list, debug=False):
 			info = creat_series_symlink(file_path, se_info, name_from_db, debug=debug)
 			add_info_to_result(info, result_list)
 	return result_list
-
 
 
 def rename_series(file_path_list=None, file_path=None, debug=False):

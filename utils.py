@@ -15,12 +15,13 @@ def get_target_path(info):
 	final_name = info.get('final_name')
 	name_from_db = info.get('name_from_db')
 	season = info.get('season')
+	episode = str(info.get('episode'))
 	if final_name is None and name_from_db is None:
 		return ''
 	elif name_from_db is None:
 		return ' => {}'.format(final_name)
 	elif season is not None:
-		return ' => {}'.format(name_from_db + ' ' + season)
+		return ' => {}'.format(name_from_db + ' ' + season + '\n' + episode)
 	else:
 		return ' => {}'.format(name_from_db)
 
@@ -46,15 +47,17 @@ def generate_message(callback_info):
 	for el in series_info:
 		status = el.get('status')
 		message_code = el.get('msg_code')
-		counter['Series'][status] += 1
-		del el['status']
+		episode = el.get('episode')
+		if episode is None:
+			counter['Series'][status] += 1
+		else:
+			counter['Series'][status] += len(episode)
 		messages[message_code]['Series'].append(el)
 
 	for el in movies_info:
 		status = el.get('status')
 		message_code = el.get('msg_code')
 		counter['Movies'][status] += 1
-		del el['status']
 		messages[message_code]['Movies'].append(el)
 
 	series_all = sum(counter['Series'].values())
@@ -67,20 +70,22 @@ def generate_message(callback_info):
 				"* `Success: {} | Warning: {} | Error: {}`\n\n".format(
 			series_all, counter['Series']['Success'], counter['Series']['Warning'], counter['Series']['Error']
 		)
-	elif movies_all != 0:
+	if movies_all != 0:
 		data += "__Movies:__ _{} File(s) Processed...._\n" \
 				"* `Success: {} | Warning: {} | Error: {}`\n\n".format(
-			series_all, counter['Movies']['Success'], counter['Movies']['Warning'], counter['Movies']['Error']
+			movies_all, counter['Movies']['Success'], counter['Movies']['Warning'], counter['Movies']['Error']
 		)
-	sep = '---\n'
+	sep = '---\n\n'
 	header2 = "### 详细信息\n"
 
 	info = ''
 	for key in messages:
 		msg = config.message_code_dict[key]
-		msg_body = "__Notice:__ _{}_\n".format(msg)
 		series_info = messages[key]['Series']
 		movies_info = messages[key]['Movies']
+		msg_body = ''
+		if len(movies_info) != 0 or len(series_info) != 0:
+			msg_body = "__Notice:__ _{}_\n".format(msg)
 		if len(series_info) != 0:
 			msg_body += "###### Series\n"
 			for el in series_info:
@@ -90,7 +95,7 @@ def generate_message(callback_info):
 				)
 		if len(movies_info) != 0:
 			msg_body += "###### Movies\n"
-			for el in series_info:
+			for el in movies_info:
 				msg_body += "* `{}{}`\n\n".format(
 					el.get('filename'),
 					get_target_path(el)
@@ -101,8 +106,9 @@ def generate_message(callback_info):
 	return desp
 
 
-def wechat_logger(title='', desp='', method="POST"):
-	key = config.key
+def wechat_logger(title='', desp='', key=config.key, method="POST"):
+	if key == '':
+		raise KeyError
 	try:
 		if method == "GET":
 			url = "https://sc.ftqq.com/{key}.send?text={text}&desp={desp}".format(

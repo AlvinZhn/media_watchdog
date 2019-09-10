@@ -10,6 +10,7 @@ import re
 
 from imdb import IMDb, IMDbDataAccessError
 from similarity.damerau import Damerau
+from similarity.jarowinkler import JaroWinkler
 
 import config
 
@@ -21,50 +22,57 @@ def make_dir(folder_path):
 		pass
 
 
-def is_chinese(strings):
+def remove_chinese_char(strings):
+	n = ''
 	for c in strings:
 		if '\u4e00' <= c <= '\u9fa5':
-			return True
-	return False
+			continue
+		else:
+			n += c
+	return n
 
 
 def remove_chinese(temp):
 	temp_list = list(filter(None, temp.split('.')))
 	new_list = []
 	for strings in temp_list:
-		if not is_chinese(strings):
-			new_list.append(strings)
+		new = remove_chinese_char(strings)
+		new_list.append(new)
 	name = '.'.join(new_list)
 	if name[0] == '.':
 		name = name.replace('.', '', 1)
 	return name
 
 
-def remove_square_bracket(file):
-	square_brackets = re.findall('[\[]+(.*?)[\]]', file)
+def remove_square_bracket(filename):
+	square_brackets = re.findall('[\[]+(.*?)[\]]', filename)
 	for el in square_brackets:
-		file = file.replace('[' + el + ']', '')
-	return file.strip()
+		filename = filename.replace('[' + el + ']', '')
+	return filename.strip()
 
 
-def replace_redundant(file):
-	file = file.replace('-', ' ').replace('_', ' ')
-	file = file.split('.' + file.split('.')[-1], 1)[0]
-	return file.strip()
+def replace_redundant(filename):
+	filename = filename.replace('-', ' ').replace('_', ' ')
+	filename = filename.split('.' + filename.split('.')[-1], 1)[0]
+	redundant = config.redundant
+	for el in redundant:
+		if ' ' + el + ' ' in filename:
+			filename = filename.replace(' ' + el + ' ', ' ')
+	return filename.strip()
 
 
-def remove_bracket(file, media_type):
+def remove_bracket(filename, media_type):
 	if media_type == 'Series':
-		brackets = re.findall('[(]+(.*?)[)]', file)
+		brackets = re.findall('[(]+(.*?)[)]', filename)
 		for el in brackets:
-			file = file.replace('(' + el + ')', '')
+			filename = filename.replace('(' + el + ')', '')
 	else:
-		file = file.replace('(', ' ').replace(')', ' ')
-	return file.strip()
+		filename = filename.replace('(', ' ').replace(')', ' ')
+	return filename.strip().replace(' ', '.')
 
 
-def format_filename(file, media_type):
-	temp = remove_bracket(file, media_type)
+def format_filename(filename, media_type):
+	temp = remove_bracket(filename, media_type)
 	temp = remove_chinese(temp)
 	rest = remove_square_bracket(temp).upper()
 	suffix = config.suffix_list
@@ -96,7 +104,7 @@ def get_movie_result(s_result):
 def get_series_result(s_result):
 	result = []
 	for el in s_result:
-		if el['kind'] == "tv miniseries" or el['kind'] == "tv series":
+		if el['kind'] == "tv miniseries" or el['kind'] == "tv series" or el['kind'] == "episode":
 			str2 = el['title']
 			result.append(str2)
 	return result
@@ -117,15 +125,27 @@ def search_from_imdb(str21, media_type):
 	return result_list
 
 
+# def find_most_apt(name, results):
+# 	damerau = Damerau()
+# 	deg = []
+# 	for el in results:
+# 		if name.upper() == el.upper():
+# 			return el
+# 		else:
+# 			deg.append(damerau.distance(name.upper(), el.upper()))
+# 	indd = int(deg.index(min(deg)))
+# 	mostapt = results[indd]
+# 	return mostapt
+
 def find_most_apt(name, results):
-	damerau = Damerau()
+	jarowinkler = JaroWinkler()
 	deg = []
 	for el in results:
 		if name.upper() == el.upper():
 			return el
 		else:
-			deg.append(damerau.distance(name.upper(), el.upper()))
-	indd = int(deg.index(min(deg)))
+			deg.append(jarowinkler.similarity(name.upper(), el.upper()))
+	indd = int(deg.index(max(deg)))
 	mostapt = results[indd]
 	return mostapt
 
@@ -135,6 +155,29 @@ def remove_illegal(strings):
 	for el in illegal_str:
 		strings = strings.replace(el, "")
 	return strings.strip()
+
+
+def is_series_movie(filename, convert=False):
+	roman_num = ['II', 'III', 'IV', 'V', 'VI', 'VII', 'IX', 'XI']
+	arabic_num = ['2', '3', '4', '5', '6', '7', '8', '9']
+	index = None
+	for i, el in enumerate(roman_num):
+		if ' ' + el + ' ' in filename:
+			index = i
+			num = roman_num[i]
+			new = arabic_num[i]
+	for i, el in enumerate(arabic_num):
+		if ' ' + el + ' ' in filename:
+			index = i
+			num = arabic_num[i]
+			new = roman_num[i]
+	if not convert:
+		return index is not None
+	else:
+		try:
+			return filename.replace(num, new)
+		except NameError:
+			return None
 
 
 def find_name(rest):

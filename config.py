@@ -26,7 +26,7 @@ exclude_folder = [
 ]
 
 allowed_extn = [
-	'.mp4', '.mkv', '.m2ts', '.ts', '.str', '.ass'
+	'.mp4', '.mkv', '.avi', '.m2ts', '.ts', '.str', '.ass'
 ]
 
 suffix_list = [
@@ -38,6 +38,11 @@ suffix_list = [
 	".X264", ".X265", ".H264", ".H265",
 	# Foramt
 	".HDTV", ".BLU-RAY", ".DTS-HD", ".WEB-DL", ".WEBRIP", ".HEVC", ".BLURAY", ".AVC", ".REMUX"
+]
+
+redundant = [
+	'UNCUT',
+	'EXTENDED',
 ]
 
 wechat_message_title = dict(

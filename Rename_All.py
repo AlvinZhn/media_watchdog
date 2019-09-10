@@ -9,7 +9,6 @@ from rename_movie import rename_movie
 from rename_series import rename_series
 
 
-
 def rename_all(file_path_dict=None, debug=False):
 	"""
 	:param file_path_dict: a dict of media type to media file path(str)
